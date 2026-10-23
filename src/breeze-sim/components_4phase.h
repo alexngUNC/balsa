@@ -176,6 +176,9 @@ void BrzMPIPull (int num, char *args[]);
 //#ifdef HLA
 void BrzHLA_init (int num, char *args[]);
 void BrzHLA_active_sync (int num, char *args[]);
+void BrzHLA_active_push (int num, char *args[]);
+void BrzHLA_passive_sync (int num, char *args[]);
+void BrzHLA_passive_push (int num, char *args[]);
 //#endif
 
 void BrzDebug_BeginFunc (char *funcname);

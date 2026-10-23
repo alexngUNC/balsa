@@ -98,6 +98,7 @@ extern gboolean VcdTraceNamedPortsOnly;
 extern void InitialisePorts (struct BreezePart *breezePart);
 extern void InitialiseBreezeChannels (struct BreezePart *breezePart);
 extern void InitialiseBreezeComponents (struct BreezePart *breezePart);
+extern void AddComponentPostInitialisation (_FCT2 fct, struct comp *comp, int optional_data);
 extern void InitialiseComponentDelayCoefs (struct BreezePart *breezePart);
 extern void PrintChanData (FILE * f, struct chan *channel);
 

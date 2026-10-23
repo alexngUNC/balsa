@@ -1159,7 +1159,7 @@ void SurfaceImpl::DrawTextBase(PRectangle rc, Font &font_, int ybase, const char
 				if (!utfForm) {	// iconv and DBCS failed so treat as Latin1
 					utfForm = UTF8FromLatin1(s, len);
 				}
-				pango_layout_set_text(layout, utfForm, len);
+				pango_layout_set_text(layout, utfForm, strlen(utfForm));
 			}
 			pango_layout_set_font_description(layout, PFont(font_)->pfd);
 			PangoLayoutLine *pll = pango_layout_get_line(layout,0);
@@ -1274,6 +1274,11 @@ void SurfaceImpl::MeasureWidths(Font &font_, const char *s, int len, int *positi
 					}
 				}
 				pango_layout_iter_free (iter);
+				// Fill the final cluster: Pango has no end-of-line sentinel.
+				int layoutWidth;
+				pango_layout_get_pixel_size(layout, &layoutWidth, NULL);
+				while (i < len)
+					positions[i++] = layoutWidth;
 			} else {
 				int positionsCalculated = 0;
 				if (et == dbcs) {
@@ -1303,6 +1308,12 @@ void SurfaceImpl::MeasureWidths(Font &font_, const char *s, int len, int *positi
 							}
 						}
 						pango_layout_iter_free (iter);
+						// Fill the final cluster: Pango has no end-of-line sentinel.
+						int layoutWidth;
+						pango_layout_get_pixel_size(layout, &layoutWidth, NULL);
+						while (i < len)
+							positions[i++] = layoutWidth;
+						positionsCalculated = i;
 						delete []utfForm;
 					}
 				}
@@ -1314,7 +1325,7 @@ void SurfaceImpl::MeasureWidths(Font &font_, const char *s, int len, int *positi
 					if (!utfForm) {
 						utfForm = UTF8FromLatin1(s, len);
 					}
-					pango_layout_set_text(layout, utfForm, len);
+					pango_layout_set_text(layout, utfForm, strlen(utfForm));
 					int i = 0;
 					PangoLayoutIter *iter = pango_layout_get_iter (layout);
 					while (pango_layout_iter_next_cluster (iter)) {
@@ -1322,6 +1333,11 @@ void SurfaceImpl::MeasureWidths(Font &font_, const char *s, int len, int *positi
 						positions[i++] = PANGO_PIXELS(pos.x);
 					}
 					pango_layout_iter_free(iter);
+					// Fill the final cluster: Pango has no end-of-line sentinel.
+					int layoutWidth;
+					pango_layout_get_pixel_size(layout, &layoutWidth, NULL);
+					while (i < len)
+						positions[i++] = layoutWidth;
 					if (useGFree) {
 						g_free(utfForm);
 					} else {
@@ -1415,7 +1431,7 @@ int SurfaceImpl::WidthText(Font &font_, const char *s, int len) {
 				if (!utfForm) {	// g_locale_to_utf8 failed so treat as Latin1
 					utfForm = UTF8FromLatin1(s, len);
 				}
-				pango_layout_set_text(layout, utfForm, len);
+				pango_layout_set_text(layout, utfForm, strlen(utfForm));
 			}
 			PangoLayoutLine *pangoLine = pango_layout_get_line(layout, 0);
 			pango_layout_line_get_extents(pangoLine, NULL, &pos);
@@ -2403,7 +2419,12 @@ const char *Platform::DefaultFont() {
 		fclose (f);
 	}
 		
+#ifdef GDK_WINDOWING_QUARTZ
+	// Quartz needs Pango fonts; the legacy GdkFont may be unavailable.
+	return "!monospace";
+#else
 	return "helvetica";
+#endif
 #endif
 }
 

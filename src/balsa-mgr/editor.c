@@ -59,6 +59,10 @@ void EditorNotifySignal (GtkWidget * editor, gint wParam, gpointer lParam, gpoin
 
 void initialise_editor (GtkWidget * editor)
 {
+#ifdef GDK_WINDOWING_QUARTZ
+    /* Avoid stale copies of the shared line pixmap on the Quartz backend. */
+    SendEditor (SCI_SETBUFFEREDDRAW, 0, 0);
+#endif
     SendEditor (SCI_STYLECLEARALL, 0, 0);
     //        SendEditor (SCI_SETLEXER, SCLEX_VERILOG, 0);
     SendEditor (SCI_SETLEXERLANGUAGE, 0, "balsa");

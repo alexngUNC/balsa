@@ -671,8 +671,7 @@
 	; Allow use of common technology if technology not set.  Otherwise use the (possibly extended)
 	; component set of the chosen technology
 	(balsa-set-tech breeze2ps-tech)
-	(if (string=? breeze-tech "common")
-		(begin)
+	(if (not (string=? breeze-tech "common"))
 		(brz-get-technology)
 	)
 	(brz-load-primitives)

@@ -800,68 +800,60 @@ gboolean OnTextBox_ButtonPressed (GtkWidget * widget, GdkEventButton * event)
         gtk_menu_popup (GTK_MENU (popupMenu1), NULL, NULL, NULL, NULL, 0, 0);
     } else
     {
-        GtkEditable *editable = GTK_EDITABLE (widget);
-        int pos = gtk_editable_get_position (editable);
+        GtkTextView *view;
+        GtkTextBuffer *buffer;
+        GtkTextIter lineStart, lineEnd;
+        char *text, *message, *firstColon, *secondColon, *numberEnd;
+        char *filename;
+        gint x, y;
+        gint64 row, col;
 
-        char *buf = NULL;
-
-        do
-        {
-            g_free (buf);
-            buf = gtk_editable_get_chars (editable, pos, pos + 1);
-            if (pos)
-                pos--;
-            if (!buf)
-                return FALSE;
-        }
-        while ((pos > 0) && (*buf != '\n'));
-        if (*buf == '\n')
-            pos += 2;
-
-        g_free (buf);
-        buf = gtk_editable_get_chars (editable, pos, pos + 1000);
-        if (!buf)
-            buf = gtk_editable_get_chars (editable, pos, -1);
-        if (!buf)
+        if (!GTK_IS_TEXT_VIEW (widget))
+            return FALSE;
+        view = GTK_TEXT_VIEW (widget);
+        if (gtk_text_view_get_window_type (view, event->window) != GTK_TEXT_WINDOW_TEXT)
             return FALSE;
 
+        buffer = gtk_text_view_get_buffer (view);
+        gtk_text_view_window_to_buffer_coords (view, GTK_TEXT_WINDOW_TEXT,
+          (gint) event->x, (gint) event->y, &x, &y);
+        gtk_text_view_get_iter_at_location (view, &lineStart, x, y);
+        gtk_text_iter_set_line_offset (&lineStart, 0);
+        lineEnd = lineStart;
+        if (!gtk_text_iter_ends_line (&lineEnd))
+            gtk_text_iter_forward_to_line_end (&lineEnd);
+        text = gtk_text_buffer_get_text (buffer, &lineStart, &lineEnd, FALSE);
+        message = text;
+        while (*message == ' ' || *message == '\t')
+            message++;
+
+        firstColon = strchr (message, ':');
+        secondColon = firstColon ? strchr (firstColon + 1, ':') : NULL;
+        if (!firstColon || !secondColon || firstColon == message)
         {
-            char *ptrCR, *ptr1, *ptr2;
-
-            ptr1 = ptr2 = NULL;
-
-            ptrCR = strstr (buf, "\n");
-            if (!ptrCR)
-                ptrCR = buf + 1000;
-            ptr1 = strstr (buf, ":");
-            if (!ptr1 || (ptr1 > ptrCR))
-                return FALSE;
-            ptr2 = strstr (ptr1 + 1, ":");
-            if (!ptr2 || (ptr2 > ptrCR))
-                return FALSE;
-
-            while (*buf == ' ' || *buf == '\t')
-                buf++;
-
-            {
-                char *filename;
-                int row, col;
-
-                filename = (char *) malloc (ptr1 - buf + 1);
-                strncpy (filename, buf, ptr1 - buf);
-                filename[ptr1 - buf] = 0;
-                row = atoi (ptr1 + 1);
-                col = atoi (ptr2 + 1);
-
-                if (col == 0)
-                    col = 1;
-
-                //      printf("coucou %d %d %s %d %d\n",event->button,pos,filename, row,col);
-                FileManager_OpenFileAtLineAndColumn (filename, row, col - 1);
-
-                gtk_editable_select_region (editable, pos, pos + (int) (ptrCR - buf));
-            }
+            g_free (text);
+            return FALSE;
         }
+        row = g_ascii_strtoll (firstColon + 1, &numberEnd, 10);
+        if (numberEnd == firstColon + 1 || numberEnd != secondColon || row < 1 || row > G_MAXINT)
+        {
+            g_free (text);
+            return FALSE;
+        }
+        col = g_ascii_strtoll (secondColon + 1, &numberEnd, 10);
+        if (numberEnd == secondColon + 1 || col < 0 || col > G_MAXINT)
+        {
+            g_free (text);
+            return FALSE;
+        }
+        if (col == 0)
+            col = 1;
+
+        filename = g_strndup (message, firstColon - message);
+        FileManager_OpenFileAtLineAndColumn (filename, (int) row, (int) col - 1);
+        gtk_text_buffer_select_range (buffer, &lineStart, &lineEnd);
+        g_free (filename);
+        g_free (text);
     }
 
     /* Tell calling code that we have not handled this event; pass it on. */
