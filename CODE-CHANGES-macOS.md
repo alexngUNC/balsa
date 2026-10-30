@@ -116,9 +116,8 @@ the click coordinates into a text iterator, reads the clicked line, and uses
 `filename:row:column` fields before opening a source location and frees the
 temporary text and filename. Right-click menu behavior is retained.
 
-The full build passed after this change. The project's
-`balsa-proj/buffer2/buffers.balsa` also compiled directly with `balsa-c`,
-producing `buffers.breeze` in a temporary output directory. This confirms
+The full build passed after this change. The supplied buffer library also compiled directly with `balsa-c`,
+producing a Breeze file in a temporary output directory. This confirms
 that the source file itself parses successfully. The user subsequently
 confirmed compilation through the GUI for the new `buffer1a` project. Clicking
 an actual diagnostic to navigate to its source location remains unverified.
@@ -186,6 +185,20 @@ retain buffered drawing. The full build passed, and the user confirmed the
 source displayed correctly after restarting. Exhaustive scrolling and resizing
 checks have not been performed.
 
+## Optional macOS graph-viewer helper
+
+`extra/macos/balsa-view-ps` is a standalone shell helper for the manager's
+configurable PostScript viewer command. It converts the selected graph using
+Ghostscript's `ps2pdf` and opens the sibling PDF with macOS `open`. It checks
+for missing inputs and dependencies, supports filenames containing spaces,
+and propagates conversion errors.
+
+This is an optional macOS integration utility, not a compiler or rendering fix.
+It does not change Balsa's upstream `gv` default. Its Ghostscript dependency,
+separate installation step, and local viewer setting are described in
+[INSTALL-macOS.md](INSTALL-macOS.md). Do not commit personal `~/.balsa-mgr`
+settings. The helper can be included in the fork with these setup notes.
+
 ## What to commit
 
 Commit the compatibility source edits and these two macOS guides. Review the
@@ -197,6 +210,7 @@ installation paths. Those path substitutions are build output, not portability
 fixes; keep them out of the compatibility commit. Likewise, exclude object
 files, executables, generated Makefiles, caches, and local configuration logs.
 
-The tutorial projects live outside this repository in `../balsa-proj`. They
-would need their own repository or an explicit decision to include them in
-this fork.
+Curated tutorial projects and the original program-counter design are included
+in [examples](examples/README.md). Commit their sources, project definitions,
+test runners, and guides, not generated netlists or diagrams. Personal working
+projects and installed copies remain outside the repository.

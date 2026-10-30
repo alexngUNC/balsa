@@ -1,0 +1,42 @@
+#!/bin/sh
+# View a Balsa PostScript graph with the macOS PDF viewer.
+set -eu
+
+if [ "$#" -ne 1 ]; then
+    echo "Usage: balsa-view-ps graph.ps" >&2
+    exit 2
+fi
+
+case "$1" in
+    /*) input=$1 ;;
+    *) input=$PWD/$1 ;;
+esac
+if [ ! -f "$input" ]; then
+    echo "balsa-view-ps: file not found: $input" >&2
+    exit 1
+fi
+
+converter=$(command -v ps2pdf || true)
+if [ -z "$converter" ]; then
+    for candidate in /opt/homebrew/bin/ps2pdf /usr/local/bin/ps2pdf; do
+        if [ -x "$candidate" ]; then
+            converter=$candidate
+            break
+        fi
+    done
+fi
+if [ -z "$converter" ]; then
+    echo "balsa-view-ps: ps2pdf is required (provided by Ghostscript)." >&2
+    exit 1
+fi
+# ps2pdf invokes gs; make its installation directory available too.
+PATH=$(dirname "$converter"):$PATH
+export PATH
+
+case "$input" in
+    *.ps|*.eps) output=${input%.*}.pdf ;;
+    *) output=$input.pdf ;;
+esac
+"$converter" "$input" "$output"
+echo "Opening $output"
+/usr/bin/open "$output"

@@ -1,67 +1,54 @@
-# Building Balsa 4.0 on Apple Silicon macOS
+# Installing Balsa 4.0 on Apple Silicon macOS
 
-These notes supplement `INSTALL` and describe dependencies, installation, and
-verification for this checkout on October 23, 2026. Source edits are documented
-separately in [CODE-CHANGES-macOS.md](CODE-CHANGES-macOS.md).
+This guide supplements `INSTALL`. The compatibility changes are included on
+this branch; [CODE-CHANGES-macOS.md](CODE-CHANGES-macOS.md) explains them.
+A Git clone already contains the source and `configure`, so the original
+instructions to download and unpack a tarball can be skipped.
 
-## 1. Use the existing Git checkout
+## Dependencies
 
-Cloning this repository provides the source files that extracting the Balsa
-tarball would provide. Skip downloading and extracting `balsa-4.0.tar.gz`.
-The checkout includes `configure`; no Autotools regeneration was needed.
+| Dependency | Tested version | Purpose |
+| --- | --- | --- |
+| Apple Clang | 21.0.0 | C/C++ compiler, invoked as `gcc` and `g++` |
+| GLib | 2.86.2 | Core support library |
+| GTK 2 | 2.24.33 | GUI and embedded editor |
+| GMP | 6.3.0 | Multiprecision arithmetic |
+| Guile | 3.0.11 | Scheme tools |
+| `pkg-config` and `make` | Available in the test environment | Dependency discovery and build |
+| Graphviz (`dot`) | Available in the test environment | Optional circuit diagrams |
+| Ghostscript (`ps2pdf`) | 10.00 | Optional PDF graph conversion |
 
-Run the build commands below from the repository root (the `balsa` directory).
+GTK 3 or GTK 4 alone does not satisfy GTK 2. GLib, GTK 2, GMP, `pkg-config`,
+and `make` were already installed in the tested environment; this guide does
+not establish a complete fresh-machine installation recipe for GTK 2.
 
-## 2. Prepare the compiler and dependencies
-
-If the compiler or Homebrew reports that the Xcode license has not been accepted,
-review and accept it in Terminal:
+If Xcode reports an unaccepted license, review and accept it in Terminal:
 
 ```sh
 sudo xcodebuild -license
 ```
 
-Install Guile through Homebrew:
+Install Guile if missing:
 
 ```sh
 brew install guile
 guile --version
 ```
 
-The following versions were present on this machine:
-
-| Dependency | Version | Purpose |
-| --- | --- | --- |
-| Apple Clang | 21.0.0 | C/C++ compiler; invoked through `gcc` and `g++` |
-| GLib | 2.86.2 | Core support library |
-| GTK 2 | 2.24.33 | Graphical tools and bundled editor |
-| GMP | 6.3.0 | Multiprecision arithmetic |
-| Guile | 3.0.11 | Scheme-based tools |
-
-GLib, GTK 2, GMP, `pkg-config`, and `make` were already available; installing
-them was not part of this session. A fresh machine needs these prerequisites
-as well. GTK 3 or GTK 4 alone does not satisfy this checkout's GTK 2 requirement.
-
-Check library discovery with:
+Verify the required libraries:
 
 ```sh
 pkg-config --modversion glib-2.0 gtk+-2.0 gmp
 ```
 
 The additional `GUILE_LOAD_PATH`, `GUILE_LOAD_COMPILED_PATH`, and
-`GUILE_SYSTEM_EXTENSIONS_PATH` exports suggested by Homebrew were not needed
-for the build and installation. Leave them unset initially.
+`GUILE_SYSTEM_EXTENSIONS_PATH` exports suggested by Homebrew were not needed.
+Leave them unset initially. Leave `BALSAHOME` and `BALSAPATH` unset for a normal
+installation; they override the configured installation and search paths.
 
-## 3. Apply the compatibility changes
+## Build and install
 
-Before building an unpatched checkout, apply the source fixes described in
-[CODE-CHANGES-macOS.md](CODE-CHANGES-macOS.md). They cover modern compiler
-requirements, 64-bit GTK types, macOS fonts and rendering, output-pane clicks,
-and Guile 3 graph generation. They are already applied in this working tree.
-
-## 4. Configure, build, and install
-
-With Homebrew under `/opt/homebrew`, run:
+From this repository's root, with Homebrew under `/opt/homebrew`:
 
 ```sh
 ./configure --prefix="$HOME/.local/balsa" \
@@ -70,89 +57,104 @@ With Homebrew under `/opt/homebrew`, run:
 make && make install
 ```
 
-This installs into your home directory and does not require `sudo make install`.
-If configuration has already succeeded and you are only applying the source
-fixes above, rerun `make && make install` directly.
+Use your actual Homebrew include and library directories if they differ.
+This installs into your home directory without `sudo make install`. No
+Autotools regeneration was needed for this checkout. After changing only
+source files, rerun `make && make install`.
 
-Warnings about deprecated GLib/GTK APIs and old C++ string usage remained during
-the successful build. The errors addressed above were the build blockers.
-
-## 5. Add Balsa to your PATH
-
-For the current terminal:
+Add the installed tools to the current terminal's path:
 
 ```sh
 export PATH="$HOME/.local/balsa/bin:$PATH"
-```
-
-Add that same line once to `~/.zshrc` for future zsh terminals. Do not set
-`BALSAHOME` or `BALSAPATH` for the normal installation; the original README
-advises leaving them unset unless overriding the installation location.
-
-## 6. Check the installation and start using it
-
-```sh
 command -v balsa-config
 command -v balsa-c
 ```
 
-Both paths should be under `$HOME/.local/balsa/bin`.
+Add the export once to `~/.zshrc` to use it in future zsh terminals.
+Warnings about deprecated GLib/GTK APIs and legacy C++ strings remain in the
+successful build. First-run Guile cache compilation may also print warnings;
+check exit status and generated output rather than treating all stderr as
+failure. `GUILE_AUTO_COMPILE=0` disables automatic cache compilation if desired.
 
-Launch the project manager:
+## Graph viewing on macOS
 
-```sh
-balsa-mgr
-```
+Graphviz's `dot` generates the graph. From an example project with a generated
+Makefile, run `make ps`. Balsa's upstream viewer default is `gv`, an external
+X11 application. It is not embedded in the manager.
 
-Or compile an existing source file from its directory:
-
-```sh
-balsa-c filename.balsa
-```
-
-Compilation produces a `.breeze` circuit file. Replace `filename.balsa` with
-your actual input file.
-
-## 7. Graph generation and viewing
-
-Graphviz (`dot`) is needed to generate the handshake circuit diagram. It was
-already available on this machine. Verify it with `command -v dot`.
-
-From a tutorial project directory containing a generated Makefile:
+The optional macOS helper uses Ghostscript to convert PostScript to PDF and
+macOS `open` to launch the default PDF viewer. It needs neither MacPorts nor
+an X11 server. Use an existing Ghostscript installation, including one from
+MacTeX, or install it if `ps2pdf` is missing:
 
 ```sh
-make ps
+command -v ps2pdf
+# Only if missing:
+brew install ghostscript
 ```
 
-The GUI defaults to `gv` for viewing PostScript, but `gv` is not installed on
-this machine. Ghostscript's `ps2pdf` was available instead. For the first
-buffer tutorial, use:
+Homebrew's [Ghostscript package](https://formulae.brew.sh/formula/ghostscript)
+provides both `gs` and `ps2pdf`.
+
+Install the helper separately from the repository root; normal `make install`
+does not install it:
 
 ```sh
-ps2pdf buffer1a.ps buffer1a.pdf
-open buffer1a.pdf
+install -m 755 extra/macos/balsa-view-ps "$HOME/.local/balsa/bin/balsa-view-ps"
+command -v balsa-view-ps
 ```
 
-This does not change the GUI's configured PostScript viewer. Its View button
-will still try `gv` until that viewer setting is changed.
+In **Project > Environment Options**, set **PostScript viewer** to the full
+path printed by that command. Save the setting. Alternatively, close the
+manager and set `PSViewer=` in `~/.balsa-mgr` to that full path before
+restarting. Do not put the literal `$HOME` variable in that setting.
 
-Guile may print cache-compilation notes and warnings about possibly unbound
-variables during the first run of a Scheme tool. Those messages alone do not
-indicate failure; check the command's exit status and generated output.
-`GUILE_AUTO_COMPILE=0` disables automatic cache compilation if desired.
+The helper replaces the sibling generated `.pdf` each time a graph is viewed,
+and propagates conversion errors. It leaves the upstream viewer default
+unchanged. Viewer preferences and the installed helper remain local to your
+machine; only the helper source and these instructions belong in Git.
 
-## Optional synthesis and simulation components
+For `gv` instead, the [MacPorts package](https://ports.macports.org/port/gv/)
+provides installation instructions. Configure Balsa with the full path to
+that executable. The PDF helper is an alternative, not a requirement.
 
-The original `INSTALL` also describes Espresso for synthesis, technology
-packages, and a separate package for Verilog simulation. These were not added
-as part of this core installation. Simulation requires a test fixture.
+## Examples and verification
 
-## Validation status
+See [examples](examples/README.md) for portable source projects and tests.
+With installed tools on `PATH`, start from the repository root:
 
-The full build and installation passed. The `buffer1a` tutorial passed
-project-based Makefile generation, compilation, cost estimation, and
-PostScript graph generation with Guile 3. The generated PDF was inspected and
-matches the expected single-place buffer structure. The user confirmed correct
-source display and successful compilation through Balsa Manager.
+```sh
+cd examples/tutorial/buffer1a
+balsa-make-makefile -b -p .
+make
+make ps cost
+balsa-mgr .
+```
 
-Simulation and Verilog backend operation have not yet been validated.
+Counter, SSEM, and original program-counter projects provide `./test.sh`.
+The original program-counter tests include 10 basic and 1,280 expanded
+transactions. The manual counter checks 10 transactions, and the SSEM test
+checks 12 memory transactions and halt. Graph generation and cost estimation
+have passed for all four examples. The user also confirmed source display
+and compilation through the GUI during setup; GUI actions are not automated
+by these test scripts.
+
+Verilog generation passed for the original program counter and manual counter
+using the installed `example/four_b_rb` technology. From either project:
+
+```sh
+balsa-netlist -X example/four_b_rb -n verilog filename.breeze
+```
+
+Replace `filename.breeze` with that project's compiled file. Generated Verilog
+is a structural netlist requiring the technology's gate definitions. Verilog
+simulation and physical implementation have not been validated.
+
+The simulator still has a known 64-bit crash in string-printing builtins
+(`StringAppend` / `FormatDataGetBalsaObject`). The included simulation harnesses
+avoid those builtins and check values internally; this is not a claim that
+the simulator is fully compatible with all programs.
+
+Espresso, real technology libraries, and separate Verilog simulation wrappers
+are optional workflow-specific additions described in the original `INSTALL`.
+They were not installed as part of these compatibility fixes.
