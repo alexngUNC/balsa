@@ -1,0 +1,50 @@
+# Autotools outputs; retain configure, Makefile.am, Makefile.in and *.in sources.
+Makefile
+/.build/
+/config.h
+/config.log
+/config.status
+/libtool
+/stamp-h1
+**/.deps/
+**/.libs/
+**/.dirstamp
+*.o
+*.lo
+*.la
+*.a
+autom4te.cache/
+
+# Configured scripts and compiled toolkit executables.
+/bin/balsa-config
+/bin/balsa-espresso
+/bin/balsa-local-script
+/bin/balsa-make-builtin-lib
+/bin/balsa-scheme-script
+/bin/balsa-scheme-shell
+/src/balsa-c/balsa-c
+/src/balsa-file-test/balsa-file-test
+/src/balsa-mgr/balsa-mgr
+/src/breeze-sim-ctrl/breeze-sim-ctrl
+/src/breeze-sim/debug/breeze-sim-debug
+/src/breeze-sim/early/breeze-sim-early
+/src/breeze-sim/fast/breeze-sim-fast
+
+# Compiled standard library; do not ignore library Verilog or source templates.
+/share/balsa/**/*.breeze
+
+# Example outputs only; source/library Verilog elsewhere remains visible.
+/examples/**/*.breeze
+/examples/**/*.ps
+/examples/**/*.pdf
+/examples/**/*.dot
+/examples/**/*.v
+/examples/**/*.map
+/examples/**/*.lst
+/examples/**/*.log
+/examples/**/*.vcd
+/examples/**/verilog/
+/examples/**/core
+/examples/**/core.*
+
+.DS_Store
