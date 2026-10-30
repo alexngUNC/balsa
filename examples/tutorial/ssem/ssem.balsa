@@ -1,0 +1,83 @@
+-- Transcribed from Balsa 3.5, section 6.6, printed pages 73-75.
+-- The Manchester SSEM (Baby) processor example.
+
+type word is 32 bits
+type LineAddress is 5 bits
+type CRTAddress is 8 bits
+type SSEMFunc is enumeration
+  JMP, JRP,
+  LDN, STO,
+  SUB, SUB_alt,
+  TEST, STOP
+end
+
+type SSEMInst is record
+  LineNo : LineAddress;
+  CRTNo : CRTAddress;
+  Func : SSEMFunc
+over word
+
+procedure SSEM (
+  output MemA : LineAddress;
+  output MemRNW : bit;
+  input MemR : word;
+  output MemW : word;
+  sync halted
+) is
+  variable ACC, ACC_slave : word
+  variable IR : word
+  variable PC, PC_step : LineAddress
+  variable MDR : word
+  variable Stopped : bit
+
+  function ExtractAddress (wordVal : word) =
+    (wordVal as SSEMInst).LineNo
+
+  shared WriteExtractedAddress is begin
+    MemA <- ExtractAddress (IR)
+  end
+  shared MemoryWrite is begin
+    MemRNW <- 0 || WriteExtractedAddress () || MemW <- ACC_slave
+  end
+  shared MemoryRead is begin
+    MemRNW <- 1 || WriteExtractedAddress () || MemR -> MDR
+  end
+  procedure InstructionFetch is begin
+    MemRNW <- 1 || MemA <- PC || MemR -> IR
+  end
+  shared ZeroACC is begin ACC := 0 end
+  shared ZeroPC is begin PC := 0 end
+  shared SUB is begin
+    MemoryRead (); ACC_slave := (ACC - MDR as word)
+  end
+  shared IncrementPC is begin
+    PC := (PC + PC_step as LineAddress)
+  end
+  shared AddMDRToPC is begin
+    PC_step := ExtractAddress (MDR); IncrementPC ()
+  end
+
+  procedure DecodeAndExecuteInstruction is
+  begin
+    case (IR as SSEMInst).Func of
+      JMP then MemoryRead (); ZeroPC (); AddMDRToPC ()
+    | JRP then MemoryRead (); AddMDRToPC ()
+    | LDN then ZeroACC (); SUB ()
+    | STO then MemoryWrite ()
+    | SUB .. SUB_alt then SUB ()
+    | TEST then
+        if #ACC [31] then IncrementPC () end
+    | STOP then Stopped := 1
+    end;
+    ACC := ACC_slave
+  end
+begin
+  ZeroACC () || ZeroPC () || Stopped := 0;
+  loop while not Stopped then
+    PC_step := 1;
+    IncrementPC ();
+    InstructionFetch ();
+    DecodeAndExecuteInstruction ()
+  end;
+  sync halted
+end

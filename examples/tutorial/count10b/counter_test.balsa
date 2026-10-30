@@ -1,0 +1,46 @@
+-- Original simulation harness for the manual's unchanged counter circuit.
+import [count10b]
+import [balsa.sim.sim]
+procedure balsa_top is
+  channel commands : In_bundle
+  channel results : C_size
+  variable actual : C_size
+  variable failures : 8 bits
+  variable stopped : bit
+begin
+  updown10 (commands, results) ||
+  begin
+    failures := 0;
+    commands <- In_bundle {8, load, up};
+    results -> actual;
+    if actual /= 8 then failures := (failures + 1 as 8 bits) end;
+    commands <- In_bundle {0, count, up};
+    results -> actual;
+    if actual /= 9 then failures := (failures + 1 as 8 bits) end;
+    commands <- In_bundle {0, count, up};
+    results -> actual;
+    if actual /= 0 then failures := (failures + 1 as 8 bits) end;
+    commands <- In_bundle {0, count, up};
+    results -> actual;
+    if actual /= 1 then failures := (failures + 1 as 8 bits) end;
+    commands <- In_bundle {0, count, down};
+    results -> actual;
+    if actual /= 0 then failures := (failures + 1 as 8 bits) end;
+    commands <- In_bundle {0, count, down};
+    results -> actual;
+    if actual /= 9 then failures := (failures + 1 as 8 bits) end;
+    commands <- In_bundle {0, count, down};
+    results -> actual;
+    if actual /= 8 then failures := (failures + 1 as 8 bits) end;
+    commands <- In_bundle {1, load, down};
+    results -> actual;
+    if actual /= 1 then failures := (failures + 1 as 8 bits) end;
+    commands <- In_bundle {0, count, down};
+    results -> actual;
+    if actual /= 0 then failures := (failures + 1 as 8 bits) end;
+    commands <- In_bundle {0, count, down};
+    results -> actual;
+    if actual /= 9 then failures := (failures + 1 as 8 bits) end;
+    if failures = 0 then stopped := BalsaSimulationStop () else halt end
+  end
+end

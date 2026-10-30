@@ -1,0 +1,12 @@
+(-- An 8-bit single-place buffer, following section 2.1 of the Balsa 3.5 manual. --)
+--Test
+import [balsa.types.basic]
+
+procedure buffer1 (input i : byte; output o : byte) is
+  variable x : byte
+begin
+  loop
+    i -> x;
+    o <- x
+  end
+end

@@ -1,0 +1,7 @@
+;;; Balsa 3.5 tutorial, section 2.1: single-place buffer.
+(balsa-project
+    (name "Buffer1a")
+    (import-path ".")
+    (simulation-system "breezesim")
+    (files "buffer1a")
+)

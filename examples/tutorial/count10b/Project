@@ -1,0 +1,6 @@
+(balsa-project
+    (name "ManualCount10b")
+    (import-path ".")
+    (simulation-system "breezesim")
+    (files "count10b")
+)

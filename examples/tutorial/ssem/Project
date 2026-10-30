@@ -1,0 +1,6 @@
+(balsa-project
+    (name "ManualSSEM")
+    (import-path ".")
+    (simulation-system "breezesim")
+    (files "ssem")
+)

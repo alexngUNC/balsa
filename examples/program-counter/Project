@@ -1,0 +1,7 @@
+;;; Standalone program-counter example inspired by the Balsa tutorial.
+(balsa-project
+    (name "ProgramCounter")
+    (import-path ".")
+    (simulation-system "breezesim")
+    (files "program_counter")
+)

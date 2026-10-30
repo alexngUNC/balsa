@@ -1,0 +1,26 @@
+-- An 8-bit, word-addressed program counter.
+-- A complete command/result handshake replaces a conventional clock cycle.
+
+type PCAddress is 8 bits
+type PCOperation is enumeration pcReset, pcLoad, pcAdvance, pcHold end
+type PCCommand is record
+  operation : PCOperation;
+  target : PCAddress
+end
+
+procedure program_counter (input command : PCCommand; output address : PCAddress) is
+  variable pc : PCAddress
+  variable request : PCCommand
+begin
+  pc := 0;
+  loop
+    command -> request;
+    case request.operation of
+      pcReset then pc := 0
+    | pcLoad then pc := request.target
+    | pcAdvance then pc := (pc + 1 as PCAddress)
+    | pcHold then continue
+    end;
+    address <- pc
+  end
+end

@@ -1,0 +1,83 @@
+-- Original deterministic memory/test harness, not transcribed from the manual.
+-- Exercises LDN, SUB, STO, TEST, JRP, JMP, and STOP.
+import [ssem]
+import [balsa.sim.sim]
+procedure balsa_top is
+  channel MemA : LineAddress
+  channel MemRNW : bit
+  channel MemR, MemW : word
+  sync halted
+  variable address : LineAddress
+  variable rnw : bit
+  variable stored : word
+  variable failures : 8 bits
+  variable stopped : bit
+begin
+  SSEM (MemA, MemRNW, MemR, MemW, halted) ||
+  begin
+    failures := 0;
+    MemA -> address || MemRNW -> rnw;
+    if address /= 1 or rnw /= 1 then
+      failures := (failures + 1 as 8 bits)
+    end;
+    MemR <- (SSEMInst {20, 0, LDN} as word);
+    MemA -> address || MemRNW -> rnw;
+    if address /= 20 or rnw /= 1 then
+      failures := (failures + 1 as 8 bits)
+    end;
+    MemR <- 5;
+    MemA -> address || MemRNW -> rnw;
+    if address /= 2 or rnw /= 1 then
+      failures := (failures + 1 as 8 bits)
+    end;
+    MemR <- (SSEMInst {21, 0, SUB} as word);
+    MemA -> address || MemRNW -> rnw;
+    if address /= 21 or rnw /= 1 then
+      failures := (failures + 1 as 8 bits)
+    end;
+    MemR <- 3;
+    MemA -> address || MemRNW -> rnw;
+    if address /= 3 or rnw /= 1 then
+      failures := (failures + 1 as 8 bits)
+    end;
+    MemR <- (SSEMInst {22, 0, STO} as word);
+    MemA -> address || MemRNW -> rnw;
+    if address /= 22 or rnw /= 0 then
+      failures := (failures + 1 as 8 bits)
+    end;
+    MemW -> stored;
+    if stored /= (0 - 8 as word) then failures := (failures + 1 as 8 bits) end;
+    MemA -> address || MemRNW -> rnw;
+    if address /= 4 or rnw /= 1 then
+      failures := (failures + 1 as 8 bits)
+    end;
+    MemR <- (SSEMInst {0, 0, TEST} as word);
+    MemA -> address || MemRNW -> rnw;
+    if address /= 6 or rnw /= 1 then
+      failures := (failures + 1 as 8 bits)
+    end;
+    MemR <- (SSEMInst {23, 0, JRP} as word);
+    MemA -> address || MemRNW -> rnw;
+    if address /= 23 or rnw /= 1 then
+      failures := (failures + 1 as 8 bits)
+    end;
+    MemR <- 1;
+    MemA -> address || MemRNW -> rnw;
+    if address /= 8 or rnw /= 1 then
+      failures := (failures + 1 as 8 bits)
+    end;
+    MemR <- (SSEMInst {24, 0, JMP} as word);
+    MemA -> address || MemRNW -> rnw;
+    if address /= 24 or rnw /= 1 then
+      failures := (failures + 1 as 8 bits)
+    end;
+    MemR <- 9;
+    MemA -> address || MemRNW -> rnw;
+    if address /= 10 or rnw /= 1 then
+      failures := (failures + 1 as 8 bits)
+    end;
+    MemR <- (SSEMInst {0, 0, STOP} as word);
+    sync halted;
+    if failures = 0 then stopped := BalsaSimulationStop () else halt end
+  end
+end

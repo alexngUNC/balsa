@@ -1,0 +1,39 @@
+-- Transcribed from Balsa 3.5, section 3.6, printed pages 43-44.
+-- Original example: count10b.balsa, an asynchronous up/down decade counter.
+import [balsa.types.basic]
+
+type C_size is nibble
+constant max_count = 9
+type dir is enumeration down, up end
+type mode is enumeration load, count end
+type In_bundle is record
+  data : C_size;
+  mode : mode;
+  dir : dir
+end
+
+procedure updown10 (input in_sigs : In_bundle; output count : C_size) is
+  variable count_reg : C_size
+  variable tmp : In_bundle
+begin
+  loop
+    in_sigs -> tmp;
+    if tmp.mode = count then
+      case tmp.dir of
+        down then
+          if count_reg /= 0 then
+            tmp.data := (count_reg - 1 as C_size)
+          else
+            tmp.data := max_count
+          end
+      | up then
+          if count_reg /= max_count then
+            tmp.data := (count_reg + 1 as C_size)
+          else
+            tmp.data := 0
+          end
+      end
+    end;
+    count <- tmp.data || count_reg := tmp.data
+  end
+end
