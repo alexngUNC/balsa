@@ -369,14 +369,10 @@ static void BalsaGetCommandLineArg (BuiltinFunction * function, BuiltinFunctionI
     FormatDataSetBalsaObject (instance->result, instance->objects[0], 0);
 }
 
-/* InitBFile : play with the bfile functions so that the symbols here definately get exported by this binary */
+/* Pull bfile.o out of the static library so its symbols are available to plugins. */
 static void InitBFile (void)
 {
-    int x = (int) BalsaFileReadable + (int) BalsaFileWritable;
-
-    while (x)
-        x = x >> 10;
-    DeleteBalsaFile (GINT_TO_POINTER (x)); // x=0
+    DeleteBalsaFile (NULL);
 }
 
 /* BreezeSimSimulationLog : log function for WriteMessage */
