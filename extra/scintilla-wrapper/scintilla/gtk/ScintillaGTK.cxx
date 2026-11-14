@@ -1343,7 +1343,7 @@ void ScintillaGTK::AddToPopUp(const char *label, int cmd, bool enabled) {
 	GtkItemFactoryEntry itemEntry = {
 	    fulllabel, NULL,
 	    menuSig,
-	    cmd,
+	    static_cast<guint>(cmd),
 	    const_cast<gchar *>(label[0] ? "<Item>" : "<Separator>"),
 #if GTK_MAJOR_VERSION >= 2
 	    NULL
@@ -2406,8 +2406,8 @@ static void scintilla_init(ScintillaObject *sci);
 extern void Platform_Initialise();
 extern void Platform_Finalise();
 
-guint scintilla_get_type() {
-	static guint scintilla_type = 0;
+GType scintilla_get_type() {
+	static GType scintilla_type = 0;
 
 	if (!scintilla_type) {
 		Platform_Initialise();

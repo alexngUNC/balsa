@@ -301,7 +301,7 @@ void BrzHLA_active_push (int num, char *args[])
     my_cosim__register_wire_in (channel_name, "_datareq", unique_port_req);
     my_cosim__register_wire_out (channel_name, "_ack");
 
-    AddComponentPostInitialisation (BrzHLA_active_push_PostInitialisation, c, 0);
+    AddComponentPostInitialisation (BrzHLA_active_push_PostInitialisation, (struct comp *) c, 0);
 
     WRITE_DEBUG_INFO_COMP ("HLA_active_push", 1);
 }

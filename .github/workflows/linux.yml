@@ -1,0 +1,46 @@
+name: Linux build and smoke tests
+
+on: [push, pull_request, workflow_dispatch]
+
+permissions:
+  contents: read
+
+jobs:
+  ubuntu:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config libgtk2.0-dev libgmp-dev guile-3.0 graphviz
+      - name: Build and install
+        run: |
+          CFLAGS="-O2 -g -std=gnu17" ./configure --prefix="$RUNNER_TEMP/balsa"
+          make -j"$(nproc)"
+          make install
+          echo "$RUNNER_TEMP/balsa/bin" >> "$GITHUB_PATH"
+      - name: Build standalone Scintilla GTK library
+        run: make -C extra/scintilla-wrapper/scintilla/gtk GTK2=1 all
+      - name: Compile, simulate, and render examples
+        env:
+          GUILE_AUTO_COMPILE: '0'
+        run: |
+          for example in tutorial/buffer1a tutorial/count10b tutorial/ssem program-counter; do
+            (
+              cd "examples/$example"
+              balsa-make-makefile -b -p .
+              make
+              make ps
+              test -s "$(find . -maxdepth 1 -name '*.ps' -print -quit)"
+              if [ -x ./test.sh ]; then ./test.sh; fi
+            )
+          done
+          (
+            cd examples/tutorial/count10b
+            balsa-netlist -X example/four_b_rb -n verilog count10b.breeze
+            test -s count10b.v
+          )
