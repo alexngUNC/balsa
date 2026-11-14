@@ -18,10 +18,23 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential pkg-config libgtk2.0-dev libgmp-dev guile-3.0 graphviz
       - name: Build and install
+        shell: bash
         run: |
-          CFLAGS="-O2 -g -std=gnu17" ./configure --prefix="$RUNNER_TEMP/balsa"
-          make -j"$(nproc)"
-          make install
+          report_failure() {
+            echo '::group::Build failure details'
+            tail -80 "$RUNNER_TEMP/balsa-build.log"
+            echo '::endgroup::'
+            detail=$(grep -E 'error:|multiple definition|undefined reference|No rule to make target' "$RUNNER_TEMP/balsa-build.log" | head -8 || true)
+            detail=${detail:-$(tail -12 "$RUNNER_TEMP/balsa-build.log")}
+            detail=${detail//'%'/'%25'}
+            detail=${detail//$'\r'/'%0D'}
+            detail=${detail//$'\n'/'%0A'}
+            echo "::error::$detail"
+            exit 1
+          }
+          CFLAGS="-O2 -g -std=gnu17" ./configure --prefix="$RUNNER_TEMP/balsa" 2>&1 | tee "$RUNNER_TEMP/balsa-build.log" || report_failure
+          make -j"$(nproc)" 2>&1 | tee -a "$RUNNER_TEMP/balsa-build.log" || report_failure
+          make install 2>&1 | tee -a "$RUNNER_TEMP/balsa-build.log" || report_failure
           echo "$RUNNER_TEMP/balsa/bin" >> "$GITHUB_PATH"
       - name: Build standalone Scintilla GTK library
         run: make -C extra/scintilla-wrapper/scintilla/gtk GTK2=1 all
