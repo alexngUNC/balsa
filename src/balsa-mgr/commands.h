@@ -25,7 +25,7 @@
 #ifndef COMMANDS_HEADER
 #define COMMANDS_HEADER
 
-char *NullCommandArguments[1];
+extern char *NullCommandArguments[1];
 
 void RunCommand (char *command, char **args);
 void RunCommandWithoutOutput (char *command, char **args);

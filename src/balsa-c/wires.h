@@ -68,7 +68,7 @@ Wire, *PtrWire;
 
 /* UnknownWireAccesses : the accesses here are not just empty, they are uncertain.
 	Only use with wire access optimisation and NewSyncWire */
-struct AccessList *UnknownWireAccesses;
+extern struct AccessList *UnknownWireAccesses;
 
 DECLARE_CONS_LIST_TYPE (Wire) DECLARE_CONS_LIST_DEEP_COPY (Wire) DECLARE_CONS_LIST_ARRAY_DEEP_COPY (Wire)
 /* WireWidth : returns the .width field of a wire or -1 if the wire is NULL,

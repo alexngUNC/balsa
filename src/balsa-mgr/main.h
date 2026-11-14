@@ -42,16 +42,16 @@ extern GdkFont *MessagesFont;
 extern GdkColor Red, Green, Blue;
 
 /* ...Pixmap : piccies and masks */
-GdkPixmap *SyncPortPixmap;
-GdkBitmap *SyncPortMask;
-GdkPixmap *InputFilePortPixmap;
-GdkPixmap *OutputFilePortPixmap;
-GdkBitmap *InputFilePortMask;
-GdkBitmap *OutputFilePortMask;
-GdkPixmap *InputValuePortPixmap;
-GdkPixmap *OutputStdoutPortPixmap;
-GdkBitmap *InputValuePortMask;
-GdkBitmap *OutputStdoutPortMask;
+extern GdkPixmap *SyncPortPixmap;
+extern GdkBitmap *SyncPortMask;
+extern GdkPixmap *InputFilePortPixmap;
+extern GdkPixmap *OutputFilePortPixmap;
+extern GdkBitmap *InputFilePortMask;
+extern GdkBitmap *OutputFilePortMask;
+extern GdkPixmap *InputValuePortPixmap;
+extern GdkPixmap *OutputStdoutPortPixmap;
+extern GdkBitmap *InputValuePortMask;
+extern GdkBitmap *OutputStdoutPortMask;
 
 extern GdkPixmap *TickPixmap;
 extern GdkBitmap *TickMask;
