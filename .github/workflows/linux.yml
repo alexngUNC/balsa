@@ -42,18 +42,28 @@ jobs:
         env:
           GUILE_AUTO_COMPILE: '0'
         run: |
+          check() {
+            local label=$1
+            shift
+            if ! timeout -k 5s 45s "$@" > "$RUNNER_TEMP/balsa-example.log" 2>&1; then
+              cat "$RUNNER_TEMP/balsa-example.log"
+              echo "::error::$label failed or timed out"
+              exit 1
+            fi
+            cat "$RUNNER_TEMP/balsa-example.log"
+          }
           for example in tutorial/buffer1a tutorial/count10b tutorial/ssem program-counter; do
             (
               cd "examples/$example"
-              balsa-make-makefile -b -p .
-              make
-              make ps
+              check "$example Makefile generation" balsa-make-makefile -b -p .
+              check "$example compilation" make
+              check "$example graph generation" make ps
               test -s "$(find . -maxdepth 1 -name '*.ps' -print -quit)"
-              if [ -x ./test.sh ]; then ./test.sh; fi
+              if [ -x ./test.sh ]; then check "$example simulation" ./test.sh; fi
             )
           done
           (
             cd examples/tutorial/count10b
-            balsa-netlist -X example/four_b_rb -n verilog count10b.breeze
+            check "count10b Verilog generation" balsa-netlist -X example/four_b_rb -n verilog count10b.breeze
             test -s count10b.v
           )
