@@ -1,0 +1,16 @@
+type Byte is 8 bits
+type Pair is record a : Byte; b : Byte end
+type Flags is record lt : bit; le : bit; gt : bit; ge : bit end
+procedure compare8 (input command : Pair; output result : Flags) is
+ variable request : Pair
+ variable flags : Flags
+begin
+ loop
+  command -> request;
+  flags.lt := (request.a < request.b);
+  flags.le := (request.a <= request.b);
+  flags.gt := (request.a > request.b);
+  flags.ge := (request.a >= request.b);
+  result <- flags
+ end
+end

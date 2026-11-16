@@ -21,7 +21,10 @@
 	(a-width (min max-width (param "inputAWidth")))
 	(b-width (min max-width (param "inputBWidth")))
 	(a-signed (= "true" (param "inputAIsSigned")))
-	(b-signed (or subtractive-op (= "true" (param "inputBIsSigned"))))
+	; Inverting B for subtraction does not make an unsigned comparison signed.
+	; Preserve the existing arithmetic path; relational operations use input types.
+	(b-signed (or (and subtractive-op (not inequality-op))
+		(= "true" (param "inputBIsSigned"))))
 	(a-is-widest (>= a-width b-width))
 	(w-width (if a-is-widest a-width b-width))
 	(w-signed (if a-is-widest a-signed b-signed))
