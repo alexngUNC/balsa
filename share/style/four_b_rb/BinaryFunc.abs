@@ -33,7 +33,9 @@
 	; doing signed x unsigned need to extend range of the unsigned input giving
 	; an extra 2 bits to the output instead of the usual one if the unsigned number
 	; is larger or equal in length to the signed number
-	(signed-unsigned-op (and (not logical-op) (> output-width w-width) (/= w-signed n-signed)
+	; A relational result is one bit, but mixed inputs can need a wider compare.
+	(signed-unsigned-op (and (not logical-op)
+			(or inequality-op (> output-width w-width)) (/= w-signed n-signed)
 			(or (not w-signed) ; unsigned is largest or equal
 				(and w-signed (= w-width n-width))))) ; unsigned is equal
 	(full-add-width (+ (if signed-unsigned-op 1 0) w-width))
@@ -110,7 +112,10 @@
 			(if signed-unsigned-op ; extend wide input
 				(if w-signed
 					(connect (slice (- w-width 1) 1 (node "w")) (slice w-width 1 (node "w")))
-					(gnd (slice w-width 1 (node "w")))
+					; The wide word contains inverted B in this comparison path.
+					(if (and inequality-op (not a-is-widest))
+						(vcc (slice w-width 1 (node "w")))
+						(gnd (slice w-width 1 (node "w"))))
 				)
 			)
 		)

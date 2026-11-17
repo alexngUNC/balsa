@@ -413,7 +413,9 @@
 						(connect (slice (- w-width 1) 1 (node "w0")) (slice w-width 1 (node "w0")))
 					)
 					; extend unsigned operand
-					(if (and (not a-is-widest) subtractive-op) ; ~inpB connected to w
+					(if (or (and a-is-widest lt-inequality-op)
+						(and (not a-is-widest) (or subtractive-op gt-inequality-op)))
+						; The extension bit must follow the wide operand inversion.
 						; extend with 1s
 						(gates
 							(connect (req "out") (slice w-width 1 (node "w1")))
