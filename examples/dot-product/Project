@@ -1,0 +1,6 @@
+(balsa-project
+    (name "DotProduct4x8")
+    (import-path ".")
+    (simulation-system "breezesim")
+    (files "dot_product")
+)

@@ -1,5 +1,8 @@
 # Balsa examples
 
+For separate bundled-data and dual-rail test entry points for the counter and
+dot product, see [encoding verification](verification/README.md).
+
 Use the installed `balsa-c`, `balsa-make-makefile`, `breeze2ps`, and `breeze-sim`
 from `PATH`. Graph generation requires Graphviz (`dot`). See
 [macOS installation](../INSTALL-macOS.md) for setup and viewer choices.
@@ -10,6 +13,7 @@ from `PATH`. Graph generation requires Graphviz (`dot`). See
 | [Loadable counter](tutorial/count10b/) | Manual, section 3.6, printed pages 43-44 | `updown10` | 10 transactions |
 | [SSEM processor](tutorial/ssem/) | Manual, section 6.6, printed pages 73-75 | `SSEM` | 12 memory transactions and halt |
 | [Program counter](program-counter/) | Original standalone design inspired by the manual | `program_counter` | 10 basic and 1,280 expanded transactions |
+| [Dot product](dot-product/) | Original four-element unsigned 8-bit design | `dot4` | 816 transactions in Breeze and structural Verilog/Xcelium |
 
 The tutorial circuits are transcribed from *Balsa: A Tutorial Guide*, version
 3.5 (University of Manchester, printed May 19, 2006). The counter and SSEM
@@ -18,6 +22,11 @@ buffer retains the listed behavior with shortened comments. Test harnesses
 and runners are original additions; they are not listings from the manual.
 The manual PDF is not bundled. Each project guide documents its provenance
 and known limitations.
+
+The original dot-product example also provides `./verify.sh all` for its
+self-checking Breeze-to-structural-Verilog/Xcelium pipeline. Its generated
+harnesses, vectors, netlists, diagrams, and simulator logs use external output
+directories; see its guide for prerequisites and protocol details.
 
 From a project directory:
 

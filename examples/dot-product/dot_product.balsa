@@ -1,0 +1,47 @@
+-- Four-lane unsigned byte dot product, with one request/result per transaction.
+-- Full precision: 4 * 255 * 255 = 260100, requiring 18 result bits.
+-- Balsa cannot synthesize variable '*' expressions; use eight shift/add steps.
+type DotByte is 8 bits
+type DotSum is 18 bits
+type DotOperands is record
+  a0 : DotByte;
+  a1 : DotByte;
+  a2 : DotByte;
+  a3 : DotByte;
+  b0 : DotByte;
+  b1 : DotByte;
+  b2 : DotByte;
+  b3 : DotByte
+end
+
+procedure dot4 (input operands : DotOperands; output result : DotSum) is
+  variable request : DotOperands
+  variable a0, a1, a2, a3 : DotSum
+  variable mask : DotByte
+  variable step : 4 bits
+  variable total : DotSum
+begin
+  loop
+    operands -> request;
+    a0 := (request.a0 as DotSum);
+    a1 := (request.a1 as DotSum);
+    a2 := (request.a2 as DotSum);
+    a3 := (request.a3 as DotSum);
+    total := 0;
+    mask := 1;
+    step := 0;
+    loop while step < 8 then
+      if (request.b0 and mask) /= 0 then total := (total + a0 as DotSum) end;
+      if (request.b1 and mask) /= 0 then total := (total + a1 as DotSum) end;
+      if (request.b2 and mask) /= 0 then total := (total + a2 as DotSum) end;
+      if (request.b3 and mask) /= 0 then total := (total + a3 as DotSum) end;
+      a0 := (a0 + a0 as DotSum);
+      a1 := (a1 + a1 as DotSum);
+      a2 := (a2 + a2 as DotSum);
+      a3 := (a3 + a3 as DotSum);
+      mask := (mask + mask as DotByte);
+      step := (step + 1 as 4 bits)
+    end;
+    result <- total
+  end
+end
